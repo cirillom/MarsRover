@@ -58,6 +58,8 @@ docker exec -it scout_sim_container /bin/bash
 
 Inside the container, run the first-time build:
 ```bash
+# (First time only) Update package lists
+apt-get update
 # (First time only) Install package-specific dependencies
 rosdep install --from-paths src --ignore-src -r -y
 # (First time only) Build the workspace
