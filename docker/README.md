@@ -12,7 +12,7 @@ This project uses Docker to create a consistent ROS2 Humble environment for simu
 Log out and log back in for this to take effect.
 
 4. (Windows Only) Install an X-Server:
-- We recommend [VcXsr](VcXsrvhttps://vcxsrv.com/).
+- [VcXsr](VcXsrvhttps://vcxsrv.com/) is recommended. The link will take you to their Github and then you can download the software on the "Releases". Make sure to not download the "debug" version.
 - During setup ("XLaunch"), accept all defaults except for the "Extra settings" screen.
 - On "Extra settings," check "Disable access control". This is essential.
 - Finish the setup and let it run in your system tray.0
