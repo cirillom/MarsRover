@@ -1,6 +1,6 @@
 # Scout Mini Simulation Development Environment
 
-This project uses Docker to create a consistent ROS2 Humble environment for simulating the Scout Mini with simple controls.
+This project uses Docker to create a consistent ROS2 Humble environment for simulating the Scout Mini with simple controls. **As the project develops and other packages are installed, the docker files will have to be updated accordingly**
 
 # 1. Prerequisites
 1. Install https://docs.docker.com/engine/install/.
@@ -15,7 +15,7 @@ Log out and log back in for this to take effect.
 - [VcXsr](VcXsrvhttps://vcxsrv.com/) is recommended. The link will take you to their Github and then you can download the software on the "Releases". Make sure to not download the "debug" version.
 - During setup ("XLaunch"), accept all defaults except for the "Extra settings" screen.
 - On "Extra settings," check "Disable access control". This is essential.
-- Finish the setup and let it run in your system tray.0
+- Finish the setup and let it run in your system tray.
 
 # 2. First-Time Setup (All Users)
 1. Clone this repository.
