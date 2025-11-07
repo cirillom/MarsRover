@@ -1,0 +1,25 @@
+version: '3.8'
+services:
+  scout_sim:
+    # Tells Compose to build the image from the Dockerfile in this directory
+    build: .
+    # This will be the name of the image it builds
+    image: scout-sim-env:latest
+    container_name: scout_sim_container
+
+    # Keeps the container running and allows you to attach to it
+    stdin_open: true # -i
+    tty: true        # -t
+
+    # --- Essential for Gazebo (GUI) ---
+    network_mode: host     # Shares host's network (easy for ROS/Gazebo)
+    privileged: true       # Needed for graphics hardware access
+    environment:
+      - DISPLAY=$DISPLAY   # Passes your host's display info to the container
+
+    # --- Combined Volumes Section ---
+    volumes:
+      # Shares the X11 socket for GUI forwarding
+      - /tmp/.X11-unix:/tmp/.X11-unix:rw
+      # Mounts your local 'ugv_gazebo_sim' folder
+      - ./ugv_gazebo_sim:/root/ros2_ws/src/ugv_gazebo_sim
