@@ -1,0 +1,18 @@
+# docker-compose.windows.yml
+version: '3.8'
+services:
+  scout_sim:
+    build: .
+    image: scout-sim-env:latest
+    container_name: scout_sim_container
+    stdin_open: true
+    tty: true
+    privileged: true
+    environment:
+      # This tells the container to send its GUI to the 'docker.internal'
+      # DNS name, which points to your Windows host.
+      - DISPLAY=host.docker.internal:0.0
+      - QT_X11_NO_MITSHM=1
+    volumes:
+      # Mounts your local code
+      - ./ugv_gazebo_sim:/root/ros2_ws/src/ugv_gazebo_sim
