@@ -1,7 +1,51 @@
-We have a C16-151A LeiShen Intelligent System LiDAR, this piece of hardware seems to work or seems to be have used very recently by someone in the lab. The current problem we are facing is that the [ROS2 driver provided in the LSLIDAR GitHub](https://github.com/Lslidar/Lslidar_ROS2_driver) does not seem to be compatible with our LiDAR model. The README file in the GitHub repository says that the driver is compatible with our C16 model, but the links are broken, and upon manually finding the [correct link](https://github.com/Lslidar/Lslidar_ROS2_driver/tree/C16_V4.0) and following the installation instructions, we are unable to get the driver to work with our LiDAR.
+LIDAR: **RS helios 16P**
 
-Following the [user manual](https://globalgpssystems.com/wp-content/uploads/2021/06/C16-LiDAR-Operation-Manual-V3.2.pdf) instructions we can clearly see from a TCPDUMP that the LiDAR is sending data over UDP on port 2368, but it seems like the ROS2 driver also waits for a device configuration packet on port 2369, which our LiDAR does not send.
+Software Requirements:  -> Ubuntu 22.04
+                        -> ROS2 Humble
 
-We tried using the [ROS2 Driver that the user manual suggested](https://github.com/LS-Technical-Supporter/LS-LIDAR-C16ROS2/tree/main) however we were unable to build the package, it seems like this driver is not maintained anymore and the last commit was made over five years ago and it only works on ROS2 Foxy, which is not compatible with our current ROS2 Humble installation.
+Harware Requirements: -> Ethernet Connectivity between the LIDAR and Host Device
 
-The user manual also suggests using a Windows software called "Leishen’s multi-lines software" that's supposed to come in a DVD with the LiDAR, however we do not have this DVD and we were unable to find this software online.
+
+Setup:
+Make a workspace for the LIDAR "rslidar_ws". Follow the official guide: https://github.com/Kyronxu/RS_HELIOS/blob/main/README.md. 
+
+In the Terminal:
+
+1. Change the IP address of the Host Device to 192.168.26.20, LIDAR sends the data on this IP:
+```
+sudo ip addr add 192.168.26.20 dev eth0
+sudo ip link set up dev eth0
+```
+
+2. Check if the IP address is up:
+```
+ip a                           # Should show IP of eth0 as set above
+ip neigh                       # Should show eth0 as STALE or REACHABLE 
+```
+
+3. ***OPTIONAL*** -> To check if the LIDAR is being detected and sending the UDP packets respectively:                          
+```               
+sudo apt install wireshark     # Check if eth0 is STALE or REACHABLE
+sudo tshark -i eth0 -f "udp" 
+```
+
+4. Activate ROS and Launch:
+```
+source /opt/ros/humble/bash
+cd rs_lidar
+source install/setup.bash
+ros2 launch rslidar_sdk start.py 
+```
+
+5. Visualize the Point Cloud:
+```
+ros2 topic list               #You should see /rslidar_points
+rviz2
+```                       
+In RIVZ2 -> In Global Options, set Fixed Frames to **rslidar** and Under PointCloud2 set Topic to **/rslidar_points**
+
+You should see the Points on the right Visualization Screen
+
+
+Miscellaneous:
+LIDAR IP: 192.168.26.60
