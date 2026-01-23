@@ -6,3 +6,6 @@ Simulation_source _files/log/
 # Generated maps
 Simulation_source _files/*.pgm
 Simulation_source _files/*.yaml
+
+gitaccess.txt
+
