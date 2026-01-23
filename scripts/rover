@@ -12,34 +12,15 @@
 # Define the workspace path - Change this if your workspace is elsewhere
 
 ROVER_PATH="$HOME/ros2_ws"
-LIDAR_WS_PATH="$HOME/rs_lidar"
-
+LIDAR_ETH_INTERFACE="enP8p1s0"
 
 if [ -z "$1" ]; then
     echo "Usage: $0 {base|teleop|lidar|camera}"
     exit 1
 fi
 
-setup_can() {
-    echo "Checking CAN interface..."
-    if ip link show can0 | grep -q "UP"; then
-        echo "CAN0 is already up."
-    else
-        echo "Setting up CAN0..."
-        sudo modprobe gs_usb
-        sudo ip link set can0 up type can bitrate 500000
-        
-        if [ $? -eq 0 ]; then
-            echo "CAN0 setup successful."
-        else
-            echo "Failed to setup CAN0. Check connections."
-            exit 1
-        fi
-    fi
-}
-
 get_wifi_ip() {
-    ip -4 addr show | grep -E 'wlan|wlp|wlx' | grep inet | awk '{print $2}' | cut -d/ -f1 | head -n 1
+    ip -4 addr show | grep -E 'wlan|wlp|wlx|wlP1p1s0' | grep inet | awk '{print $2}' | cut -d/ -f1 | head -n 1
 }
 
 source /opt/ros/humble/setup.bash
@@ -53,53 +34,73 @@ case "$1" in
             echo "Error: Workspace setup.bash not found at $ROVER_PATH/install/setup.bash"
             exit 1
         fi
-        setup_can
-        ros2 launch scout_base scout_base.launch.py
+
+        echo "Checking CAN interface..."
+        if ip link show can1 | grep -q "UP"; then
+            echo "CAN0 is already up."
+        else
+            echo "Setting up CAN1..."
+            sudo modprobe gs_usb
+            sudo ip link set can1 up type can bitrate 500000
+
+            if [ $? -eq 0 ]; then
+                echo "CAN1 setup successful."
+            else
+                echo "Failed to setup CAN1. Check connections."
+                exit 1
+            fi
+        fi
+
+        echo "Starting Base Description..."
+        ros2 launch scout_description scout_base_description.launch.py &
+        PID_desc=$!
+        ros2 launch scout_base scout_base.launch.py port_name:='can1' use_sim_time:='False'
+
+        kill $PID_desc
         ;;
-        
+
     "teleop")
         echo "Starting Teleop Twist Keyboard..."
         ros2 run teleop_twist_keyboard teleop_twist_keyboard
         ;;
-        
+
     "lidar")
-        echo "Starting Lidar..."
-        
-        if [ -f "$LIDAR_WS_PATH/install/setup.bash" ]; then
-            source "$LIDAR_WS_PATH/install/setup.bash"
-            echo "Sourced Lidar workspace: $LIDAR_WS_PATH"
+        echo "Starting Lidar Stack..."
+        if [ -f "$ROVER_PATH/install/setup.bash" ]; then
+            source "$ROVER_PATH/install/setup.bash"
         else
-            echo "Error: Lidar workspace setup.bash not found at $LIDAR_WS_PATH/install/setup.bash"
+            echo "Error: Workspace setup.bash not found at $ROVER_PATH/install/setup.bash"
             exit 1
         fi
 
-        echo "Configuring eth0 for Lidar..."
-        sudo ip flush dev eth0
-        sudo ip addr add 192.168.26.20 dev eth0
-        sudo ip link set up dev eth0
-        
-        if ip addr show eth0 | grep -q "192.168.26.20"; then
-            echo "✓ IP Check: 192.168.26.20 is correctly assigned to eth0."
+        echo "Configuring $LIDAR_ETH_INTENRFACE for Lidar..."
+        sudo ip flush dev $LIDAR_ETH_INTERFACE
+        sudo ip addr add 192.168.26.20 dev $LIDAR_ETH_INTERFACE
+        sudo ip link set up dev $LIDAR_ETH_INTERFACE
+
+        if ip addr show $LIDAR_ETH_INTERFACE | grep -q "192.168.26.20"; then
+            echo "✓ IP Check: 192.168.26.20 is correctly assigned to ${LIDAR_ETH_INTERFACE}."
         else
-            echo "✗ IP Check: Failed to assign 192.168.26.20 to eth0."
+            echo "✗ IP Check: Failed to assign 192.168.26.20 to ${LIDAR_ETH_INTERFACE}."
             exit 1
         fi
 
-        if ip link show eth0 | grep -q "state UP"; then
-            echo "✓ Link Check: eth0 interface is UP."
+        if ip link show $LIDAR_ETH_INTERFACE | grep -q "state UP"; then
+            echo "✓ Link Check: ${LIDAR_ETH_INTERFACE} interface is UP."
         else
-            echo "✗ Link Check: eth0 is not UP. Check cable connection."
+            echo "✗ Link Check: ${LIDAR_ETH_INTERFACE} is not UP. Check cable connection."
             exit 1
         fi
 
         echo "Launching Robosense Lidar SDK..."
         ros2 launch rslidar_sdk start.py
         ;;
-        
-    "camera")
+
+        "camera")
         echo "Starting Camera..."
+        sudo fuser -k -9 /dev/video0 > /dev/null 2>&1 || true
+
         WIFI_IP=$(get_wifi_ip)
-        
         if [ -n "$WIFI_IP" ]; then
             echo "------------------------------------------------"
             echo "Connect to http://$WIFI_IP:8081 in a browser"
@@ -110,7 +111,7 @@ case "$1" in
 
         sudo motion
         ;;
-        
+
     *)
         echo "Invalid command: $1"
         echo "Usage: $0 {base|teleop|lidar|camera}"

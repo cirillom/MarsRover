@@ -1,0 +1,8 @@
+# colcon / ROS2 build artifacts
+Simulation_source _files/build/
+Simulation_source _files/install/
+Simulation_source _files/log/
+
+# Generated maps
+Simulation_source _files/*.pgm
+Simulation_source _files/*.yaml
