@@ -101,6 +101,7 @@ case "$1" in
         sudo fuser -k -9 /dev/video0 > /dev/null 2>&1 || true
 
         WIFI_IP=$(get_wifi_ip)
+        
         if [ -n "$WIFI_IP" ]; then
             echo "------------------------------------------------"
             echo "Connect to http://$WIFI_IP:8081 in a browser"
